@@ -36,7 +36,7 @@ import {
   MemoryCacheSettings
 } from './memory-cache';
 
-const { assert, deprecate } = Orbit;
+const { assert } = Orbit;
 
 export interface MemorySourceSettings<
   QO extends RequestOptions = RecordSourceQueryOptions,
@@ -53,16 +53,6 @@ export interface MemorySourceSettings<
 
 export interface MemorySourceMergeOptions {
   coalesce?: boolean;
-
-  /**
-   * @deprecated since v0.17
-   */
-  sinceTransformId?: string;
-
-  /**
-   * @deprecated since v0.17, include transform options alongside merge options instead
-   */
-  transformOptions?: RequestOptions;
 }
 
 export interface MemorySource<
@@ -327,18 +317,9 @@ export class MemorySource<
   ): Promise<
     RecordTransformResult | FullResponse<RequestData, TRD, RecordOperation>
   > {
-    let { coalesce, sinceTransformId, transformOptions, ...remainingOptions } =
-      options ?? {};
+    let { coalesce, ...remainingOptions } = options ?? {};
 
-    let requestOptions: TO;
-    if (transformOptions) {
-      deprecate(
-        'In MemorySource#merge, passing `transformOptions` nested within `options` is deprecated. Instead, include them directly alongside other options.'
-      );
-      requestOptions = transformOptions as TO;
-    } else {
-      requestOptions = (remainingOptions ?? {}) as TO;
-    }
+    let requestOptions: TO = (remainingOptions ?? {}) as TO;
 
     let ops: RecordOperation[] = [];
 
@@ -346,15 +327,7 @@ export class MemorySource<
       ops = forkedSource.cache.getAllUpdateOperations();
     } else {
       let transforms: RecordTransform[];
-      if (sinceTransformId) {
-        deprecate(
-          'In MemorySource#merge, passing `sinceTransformId` is deprecated. Instead, call `update` with a custom transform/operations.'
-        );
-        transforms = forkedSource.getTransformsSince(sinceTransformId);
-      } else {
-        transforms = forkedSource.getAllTransforms();
-      }
-
+      transforms = forkedSource.getAllTransforms();
       transforms.forEach((t) => {
         Array.prototype.push.apply(ops, toArray(t.operations));
       });
@@ -440,30 +413,10 @@ export class MemorySource<
   }
 
   /**
-   * @deprecated since v0.17, call `getTransformsSince` instead
-   */
-  transformsSince(transformId: string): RecordTransform[] {
-    deprecate(
-      'MemorySource#transformsSince has been deprecated. Please call `source.getTransformsSince(tranformId)` instead.'
-    );
-    return this.getTransformsSince(transformId);
-  }
-
-  /**
    * Returns all logged transforms.
    */
   getAllTransforms(): RecordTransform[] {
     return this.transformLog.entries.map((id) => this._transforms[id]);
-  }
-
-  /**
-   * @deprecated since v0.17, call `getAllTransforms` instead
-   */
-  allTransforms(): RecordTransform[] {
-    deprecate(
-      'MemorySource#allTransforms has been deprecated. Please call `source.getAllTransforms()` instead.'
-    );
-    return this.getAllTransforms();
   }
 
   getTransform(transformId: string): RecordTransform {

@@ -127,7 +127,7 @@ export class JSONAPIURLBuilder {
         ) {
           const attributeFilter = filterSpecifier as AttributeFilterSpecifier;
           const field = this.serializeFieldParam(attributeFilter.attribute, {
-            kind: 'attribute'
+            type: 'attribute'
           });
           params.push({
             [field]: attributeFilter.value ?? null
@@ -140,7 +140,7 @@ export class JSONAPIURLBuilder {
             );
           }
           const field = this.serializeFieldParam(relatedRecordFilter.relation, {
-            kind: 'relationship'
+            type: 'relationship'
           });
           if (Array.isArray(relatedRecordFilter.record)) {
             params.push({
@@ -162,7 +162,7 @@ export class JSONAPIURLBuilder {
           }
           const field = this.serializeFieldParam(
             relatedRecordsFilter.relation,
-            { kind: 'relationship' }
+            { type: 'relationship' }
           );
           params.push({
             [field]: relatedRecordsFilter.records
@@ -214,7 +214,7 @@ export class JSONAPIURLBuilder {
 
           if (fieldName) {
             const field = this.serializeFieldParam(fieldName, {
-              kind: 'attribute'
+              type: 'attribute'
             });
             return `${descending ? '-' : ''}${field}`;
           }
@@ -249,7 +249,7 @@ export class JSONAPIURLBuilder {
         .map((s) => {
           const paths = Array.isArray(s) ? s : s.split('.');
           return paths
-            .map((p) => this.serializeFieldParam(p, { kind: 'relationship' }))
+            .map((p) => this.serializeFieldParam(p, { type: 'relationship' }))
             .join('.');
         })
         .join(',');
@@ -294,8 +294,6 @@ export class JSONAPIURLBuilder {
     field: string,
     options?: {
       type?: string;
-      // TODO: remove kind param when deprecated serializer is removed
-      kind?: 'attribute' | 'relationship';
     }
   ): string {
     const serializer = this.serializerFor(

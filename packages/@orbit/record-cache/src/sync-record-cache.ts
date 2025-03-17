@@ -23,7 +23,6 @@ import {
   recordsReferencedByOperations,
   RecordTransform,
   RecordTransformBuilder,
-  RecordTransformBuilderFunc,
   RecordTransformResult,
   SyncRecordQueryable,
   SyncRecordUpdatable
@@ -57,13 +56,13 @@ import {
   RecordCacheTransformOptions
 } from './record-cache';
 import { RecordTransformBuffer } from './record-transform-buffer';
-import { PatchResult, RecordCacheUpdateDetails } from './response';
+import { RecordCacheUpdateDetails } from './response';
 import {
   SyncOperationProcessor,
   SyncOperationProcessorClass
 } from './sync-operation-processor';
 
-const { assert, deprecate } = Orbit;
+const { assert } = Orbit;
 
 export interface SyncRecordCacheSettings<
   QO extends RequestOptions = RecordCacheQueryOptions,
@@ -285,35 +284,6 @@ export abstract class SyncRecordCache<
     } else {
       return response.data as RequestData;
     }
-  }
-
-  /**
-   * Patches the cache with an operation or operations.
-   *
-   * @deprecated since v0.17
-   */
-  patch(
-    operationOrOperations:
-      | RecordOperation
-      | RecordOperation[]
-      | RecordOperationTerm
-      | RecordOperationTerm[]
-      | RecordTransformBuilderFunc
-  ): PatchResult {
-    deprecate(
-      'SyncRecordCache#patch has been deprecated. Use SyncRecordCache#update instead.'
-    );
-
-    // TODO - Why is this `this` cast necessary for TS to understand the correct
-    // method overload?
-    const { data, details } = (this as any).update(operationOrOperations, {
-      fullResponse: true
-    });
-
-    return {
-      inverse: details?.inverseOperations || [],
-      data: Array.isArray(data) ? data : [data]
-    };
   }
 
   liveQuery(

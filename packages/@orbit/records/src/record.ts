@@ -36,11 +36,6 @@ export interface RecordFields {
   meta?: Dict<unknown>;
 }
 
-/**
- * @deprecated since v0.17, use alias `InitializedRecord` instead
- */
-export interface Record extends RecordFields, RecordIdentity {}
-
 export interface InitializedRecord extends RecordFields, RecordIdentity {}
 
 export interface UninitializedRecord extends RecordFields {
@@ -52,13 +47,6 @@ export interface RecordKeyValue {
   type: string;
   key: string;
   value: string;
-}
-
-/**
- * @deprecated since v0.17, replaced by `RecordNormalizer`
- */
-export interface RecordInitializer {
-  initializeRecord(record: UninitializedRecord): InitializedRecord;
 }
 
 export function cloneRecordIdentity(identity: RecordIdentity): RecordIdentity {

@@ -29,7 +29,7 @@ import {
 } from '@orbit/records';
 import { clone, Dict, toArray } from '@orbit/utils';
 
-const { assert, deprecate } = Orbit;
+const { assert } = Orbit;
 
 export interface MemoryCacheMergeOptions {
   coalesce?: boolean;
@@ -358,13 +358,6 @@ export class MemoryCache<
    */
   reset(): void {
     let base = this._base;
-
-    if (arguments.length > 0) {
-      deprecate(
-        'Calling MemoryCache#reset with a `base` argument is deprecated. Instead configure your MemoryCache with a `base` cache.'
-      );
-      base ??= arguments[0];
-    }
 
     this._records = {};
 

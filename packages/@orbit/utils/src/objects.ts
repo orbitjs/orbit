@@ -44,48 +44,6 @@ export function clone(obj: any): any {
 }
 
 /**
- * Expose properties and methods from one object on another.
- *
- * Methods will be called on `source` and will maintain `source` as the context.
- *
- * @deprecated since v0.17
- */
-export function expose(destination: any, source: any): void {
-  let properties: string[];
-  if (arguments.length > 2) {
-    properties = Array.prototype.slice.call(arguments, 2);
-  } else {
-    properties = Object.keys(source);
-  }
-
-  properties.forEach((p) => {
-    if (typeof source[p] === 'function') {
-      destination[p] = function () {
-        return source[p].apply(source, arguments);
-      };
-    } else {
-      destination[p] = source[p];
-    }
-  });
-}
-
-/**
- * Extend an object with the properties of one or more other objects.
- *
- * @deprecated since v0.17
- */
-export function extend(destination: any, ...sources: any[]): any {
-  sources.forEach((source) => {
-    for (let p in source) {
-      if (source.hasOwnProperty(p)) {
-        destination[p] = source[p];
-      }
-    }
-  });
-  return destination;
-}
-
-/**
  * Converts an object to an `Array` if it's not already.
  *
  * @export
@@ -120,27 +78,6 @@ export function isObject(obj: unknown): boolean {
  */
 export function isNone(obj: unknown): boolean {
   return obj === undefined || obj === null;
-}
-
-/**
- * Merges properties from other objects into a base object. Properties that
- * resolve to `undefined` will not overwrite properties on the base object
- * that already exist.
- *
- * @deprecated since v0.17
- */
-export function merge(object: any, ...sources: any[]): any {
-  sources.forEach((source) => {
-    Object.keys(source).forEach((field) => {
-      if (source.hasOwnProperty(field)) {
-        let value = source[field];
-        if (value !== undefined) {
-          object[field] = clone(value);
-        }
-      }
-    });
-  });
-  return object;
 }
 
 /**

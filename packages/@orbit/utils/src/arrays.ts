@@ -39,24 +39,3 @@ export function some(
 
   return false;
 }
-
-/**
- * This function is similar to Array.prototype.find, but it returns the result
- * of calling the value function rather than an item of the array.
- *
- * @deprecated since v0.17, remove in v0.18
- */
-export function firstResult(
-  array: any[],
-  valueFn: (member: any, index: number) => any
-): any {
-  let index = -1;
-  let length: number = array.length;
-
-  while (++index < length) {
-    let result = valueFn(array[index], index);
-    if (result) {
-      return result;
-    }
-  }
-}

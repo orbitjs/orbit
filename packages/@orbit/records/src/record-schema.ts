@@ -9,7 +9,7 @@ import {
   RelationshipNotDefined
 } from './record-exceptions';
 
-const { uuid, deprecate } = Orbit;
+const { uuid } = Orbit;
 
 export interface FieldValidationOptions {
   required?: boolean;
@@ -53,11 +53,6 @@ export type RelationshipDefinition =
   | HasManyRelationshipDefinition;
 
 export interface KeyDefinition {
-  /**
-   * @deprecated since v0.17 - not used by any standard serializers
-   */
-  primaryKey?: boolean;
-
   validation?: FieldValidationOptions & {
     notNull?: boolean;
   };
@@ -84,20 +79,6 @@ export interface RecordSchemaSettings {
    * Function used to generate record IDs.
    */
   generateId?: (model?: string) => string;
-
-  /**
-   * Function used to pluralize names.
-   *
-   * @deprecated
-   */
-  pluralize?: (word: string) => string;
-
-  /**
-   * Function used to singularize names.
-   *
-   * @deprecated
-   */
-  singularize?: (word: string) => string;
 
   /**
    * Map of model definitions.
@@ -165,22 +146,9 @@ export class RecordSchema {
     if (settings.generateId) {
       this.generateId = settings.generateId;
     }
-    if (settings.pluralize) {
-      deprecate(
-        'Schema#pluralize has been deprecated. Use inflectors from in @orbit/serializers instead.'
-      );
-      this.pluralize = settings.pluralize;
-    }
-    if (settings.singularize) {
-      deprecate(
-        'Schema#singularize has been deprecated. Use inflectors from @orbit/serializers instead.'
-      );
-      this.singularize = settings.singularize;
-    }
 
     // Register model schemas
     if (settings.models) {
-      this._deprecateRelationshipModel(settings.models);
       this._models = settings.models;
     }
   }
@@ -191,41 +159,6 @@ export class RecordSchema {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   generateId(type?: string): string {
     return uuid();
-  }
-
-  /**
-   * A naive pluralization method.
-   *
-   * Deprecated in favor of inflectors now in @orbit/serializers
-   *
-   * @deprecated since v0.17, remove in v0.18
-   */
-  pluralize(word: string): string {
-    deprecate(
-      'Schema#pluralize has been deprecated. Use inflectors from @orbit/serializers instead.'
-    );
-    return word + 's';
-  }
-
-  /**
-   * A naive singularization method.
-   *
-   * Deprecated in favor of inflectors now in @orbit/serializers
-   *
-   * @deprecated since v0.17, remove in v0.18
-   */
-  singularize(word: string): string {
-    deprecate(
-      'Schema#singularize has been deprecated. Use inflectors from @orbit/serializers instead.'
-    );
-    if (word.lastIndexOf('s') === word.length - 1) {
-      return word.substr(0, word.length - 1);
-    } else {
-      console.warn(
-        `Orbit's built-in naive singularization rules cannot singularize ${word}. Pass singularize & pluralize functions to Schema to customize.`
-      );
-      return word;
-    }
   }
 
   get models(): Dict<ModelDefinition> {
@@ -317,23 +250,6 @@ export class RecordSchema {
     const relationships = model.relationships || {};
     for (let name in relationships) {
       callbackFn(name, relationships[name]);
-    }
-  }
-
-  _deprecateRelationshipModel(models: Dict<ModelDefinition>): void {
-    for (let type in models) {
-      if (models[type].relationships) {
-        let relationships = models[type]
-          .relationships as Dict<RelationshipDefinition>;
-        for (let name in relationships) {
-          let relationship = relationships[name];
-          if (relationship.model) {
-            deprecate(
-              'RelationshipDefinition.model is deprecated, use `type` and `kind` instead.'
-            );
-          }
-        }
-      }
     }
   }
 }

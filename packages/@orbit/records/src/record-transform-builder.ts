@@ -4,7 +4,6 @@ import { StandardValidator, ValidatorForFn } from '@orbit/validators';
 import {
   InitializedRecord,
   RecordIdentity,
-  RecordInitializer,
   UninitializedRecord
 } from './record';
 import { RecordNormalizer } from './record-normalizer';
@@ -23,7 +22,7 @@ import {
 import { RecordSchema } from './record-schema';
 import { StandardRecordValidator } from './record-validators/standard-record-validators';
 
-const { assert, deprecate } = Orbit;
+const { assert } = Orbit;
 
 export type RecordTransformBuilderFunc = TransformBuilderFunc<
   RecordOperation,
@@ -35,11 +34,6 @@ export interface RecordTransformBuilderSettings<
   RI = RecordIdentity,
   R = UninitializedRecord
 > {
-  /**
-   * @deprecated since v0.17, replaced by `recordNormalizer`
-   */
-  recordInitializer?: RecordInitializer;
-
   schema?: RecordSchema;
   normalizer?: RecordNormalizer<RT, RI, R>;
   validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
@@ -55,7 +49,7 @@ export class RecordTransformBuilder<
   $validatorFor?: ValidatorForFn<StandardValidator | StandardRecordValidator>;
 
   constructor(settings: RecordTransformBuilderSettings<RT, RI, R> = {}) {
-    const { schema, normalizer, validatorFor, recordInitializer } = settings;
+    const { schema, normalizer, validatorFor } = settings;
 
     if (validatorFor) {
       assert(
@@ -67,31 +61,6 @@ export class RecordTransformBuilder<
     this.$schema = schema;
     this.$normalizer = normalizer;
     this.$validatorFor = validatorFor;
-
-    if (recordInitializer) {
-      if (this.$normalizer !== undefined) {
-        deprecate(
-          'A `normalizer` and `recordInitializer` have both been assigned to the `TransformBuilder`. Only the `normalizer` will be used.'
-        );
-      } else {
-        deprecate(
-          'A `recordInitializer` has been assigned to the `TransformBuilder`. The `recordInitializer` setting has been deprecated in favor of `normalizer`, and will be treated as if it were a `RecordNormalizer`.'
-        );
-        this.$normalizer = {
-          normalizeRecordType(type: RT): string {
-            return (type as unknown) as string;
-          },
-          normalizeRecord(record: R) {
-            return recordInitializer.initializeRecord(
-              (record as unknown) as UninitializedRecord
-            );
-          },
-          normalizeRecordIdentity(recordIdentity: RI) {
-            return (recordIdentity as unknown) as RecordIdentity;
-          }
-        };
-      }
-    }
   }
 
   /**

@@ -13,7 +13,7 @@ import { RecordKeyMap } from './record-key-map';
 import { RecordNormalizer } from './record-normalizer';
 import { RecordSchema } from './record-schema';
 
-const { assert, deprecate } = Orbit;
+const { assert } = Orbit;
 
 export interface StandardRecordNormalizerSettings {
   schema: RecordSchema;
@@ -115,16 +115,6 @@ export class StandardRecordNormalizer
     }
 
     let result = cloneInputs ? this.cloneRecord(record) : record;
-
-    // If `initializeRecord` has been defined on the schema, continue to call it
-    // but issue a deprecation warning.
-    // TODO: Remove in v0.18
-    if ((schema as any).initializeRecord !== undefined) {
-      deprecate(
-        "RecordSchema's `initializeRecord` method should NOT be defined. Instead override `normalizeRecord` on the RecordNormalizer to initialize records."
-      );
-      result = (schema as any).initializeRecord(result);
-    }
 
     if (result.id === undefined) {
       const { keys } = result;
