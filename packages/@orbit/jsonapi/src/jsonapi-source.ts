@@ -155,7 +155,8 @@ export class JSONAPISource<
     RecordPullable<JSONAPIResponse[]>,
     RecordPushable<JSONAPIResponse[]>,
     RecordQueryable<JSONAPIResponse[], QB, QO>,
-    RecordUpdatable<JSONAPIResponse[], TB, TO> {
+    RecordUpdatable<JSONAPIResponse[], TB, TO>
+{
   requestProcessor: JSONAPIRequestProcessor;
 
   constructor(settings: JSONAPISourceSettings<QO, TO, QB, TB>) {

@@ -40,16 +40,26 @@ export function buildJSONAPISerializerFor(settings: {
     date: DateSerializer as SerializerClass,
     datetime: DateTimeSerializer as SerializerClass,
     number: NumberSerializer as SerializerClass,
-    [JSONAPISerializers.Resource as string]: JSONAPIResourceSerializer as SerializerClass,
-    [JSONAPISerializers.ResourceDocument as string]: JSONAPIDocumentSerializer as SerializerClass,
-    [JSONAPISerializers.ResourceIdentity as string]: JSONAPIResourceIdentitySerializer as SerializerClass,
-    [JSONAPISerializers.ResourceAtomicOperation as string]: JSONAPIAtomicOperationSerializer as SerializerClass,
-    [JSONAPISerializers.ResourceType as string]: StringSerializer as SerializerClass,
-    [JSONAPISerializers.ResourceTypeParam as string]: StringSerializer as SerializerClass,
-    [JSONAPISerializers.ResourceTypePath as string]: StringSerializer as SerializerClass,
-    [JSONAPISerializers.ResourceField as string]: JSONAPIResourceFieldSerializer as SerializerClass,
-    [JSONAPISerializers.ResourceFieldParam as string]: JSONAPIResourceFieldSerializer as SerializerClass,
-    [JSONAPISerializers.ResourceFieldPath as string]: JSONAPIResourceFieldSerializer as SerializerClass
+    [JSONAPISerializers.Resource as string]:
+      JSONAPIResourceSerializer as SerializerClass,
+    [JSONAPISerializers.ResourceDocument as string]:
+      JSONAPIDocumentSerializer as SerializerClass,
+    [JSONAPISerializers.ResourceIdentity as string]:
+      JSONAPIResourceIdentitySerializer as SerializerClass,
+    [JSONAPISerializers.ResourceAtomicOperation as string]:
+      JSONAPIAtomicOperationSerializer as SerializerClass,
+    [JSONAPISerializers.ResourceType as string]:
+      StringSerializer as SerializerClass,
+    [JSONAPISerializers.ResourceTypeParam as string]:
+      StringSerializer as SerializerClass,
+    [JSONAPISerializers.ResourceTypePath as string]:
+      StringSerializer as SerializerClass,
+    [JSONAPISerializers.ResourceField as string]:
+      JSONAPIResourceFieldSerializer as SerializerClass,
+    [JSONAPISerializers.ResourceFieldParam as string]:
+      JSONAPIResourceFieldSerializer as SerializerClass,
+    [JSONAPISerializers.ResourceFieldPath as string]:
+      JSONAPIResourceFieldSerializer as SerializerClass
   });
   let serializerClassFor: SerializerClassForFn;
   if (settings.serializerClassFor) {

@@ -91,7 +91,8 @@ export abstract class SyncRecordCache<
   implements
     SyncRecordAccessor,
     SyncRecordQueryable<QueryResponseDetails, QB, QO>,
-    SyncRecordUpdatable<TransformResponseDetails, TB, TO> {
+    SyncRecordUpdatable<TransformResponseDetails, TB, TO>
+{
   protected _processors: SyncOperationProcessor[];
   protected _queryOperators: Dict<SyncQueryOperator>;
   protected _transformOperators: Dict<SyncTransformOperator>;
@@ -401,10 +402,8 @@ export abstract class SyncRecordCache<
 
       this.applyRecordChangesetSync(changes);
 
-      const {
-        appliedOperations,
-        appliedOperationResults
-      } = response.details as TransformResponseDetails;
+      const { appliedOperations, appliedOperationResults } =
+        response.details as TransformResponseDetails;
 
       for (let i = 0, len = appliedOperations.length; i < len; i++) {
         this.emit('patch', appliedOperations[i], appliedOperationResults[i]);

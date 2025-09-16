@@ -134,9 +134,8 @@ module('JSONAPISerializer', function (hooks) {
   });
 
   test('deserializeOperationsDocument', function (assert) {
-    const document = serializer.deserializeAtomicOperationsDocument(
-      operationsDocument
-    );
+    const document =
+      serializer.deserializeAtomicOperationsDocument(operationsDocument);
     assert.deepEqual(document, {
       operations: [
         {

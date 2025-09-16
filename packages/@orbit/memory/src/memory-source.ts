@@ -93,7 +93,8 @@ export class MemorySource<
     RecordSyncable,
     RecordQueryable<QRD, QB, QO>,
     RecordUpdatable<TRD, TB, TO>,
-    Resettable {
+    Resettable
+{
   protected _cache: MemoryCache<QO, TO, QB, TB, QRD, TRD>;
   protected _base?: MemorySource<QO, TO, QB, TB, QRD, TRD>;
   protected _forkPoint?: string;
@@ -180,11 +181,8 @@ export class MemorySource<
     hints?: ResponseHints<RecordTransformResult, TRD>
   ): Promise<FullResponse<RecordTransformResult, TRD, RecordOperation>> {
     let results: RecordTransformResult;
-    const response: FullResponse<
-      RecordTransformResult,
-      TRD,
-      RecordOperation
-    > = {};
+    const response: FullResponse<RecordTransformResult, TRD, RecordOperation> =
+      {};
 
     if (!this.transformLog.contains(transform.id)) {
       results = this._applyTransform(transform);
@@ -487,7 +485,8 @@ export class MemorySource<
   }
 
   set defaultTransformOptions(options: DefaultRequestOptions<TO> | undefined) {
-    this._defaultTransformOptions = this._cache.defaultTransformOptions = options;
+    this._defaultTransformOptions = this._cache.defaultTransformOptions =
+      options;
   }
 
   /////////////////////////////////////////////////////////////////////////////

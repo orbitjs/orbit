@@ -56,7 +56,8 @@ export class JSONAPISerializer
       ResourceDocument,
       JSONAPISerializationOptions,
       JSONAPISerializationOptions
-    > {
+    >
+{
   protected _schema: RecordSchema;
   protected _keyMap?: RecordKeyMap;
   protected _serializerFor: SerializerForFn;

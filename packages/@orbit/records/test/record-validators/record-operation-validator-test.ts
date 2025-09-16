@@ -805,9 +805,9 @@ module('validateRecordOperation', function (hooks) {
   });
 
   test('will validate unknown operations', function (assert) {
-    const unknownOperation = ({
+    const unknownOperation = {
       op: 'unknown'
-    } as unknown) as RecordOperation;
+    } as unknown as RecordOperation;
 
     assert.deepEqual(
       validateRecordOperation(unknownOperation, {

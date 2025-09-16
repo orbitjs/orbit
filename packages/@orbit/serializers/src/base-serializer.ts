@@ -6,8 +6,8 @@ export abstract class BaseSerializer<
   To,
   SerializationOptions = unknown,
   DeserializationOptions = unknown
-> implements
-    Serializer<From, To, SerializationOptions, DeserializationOptions> {
+> implements Serializer<From, To, SerializationOptions, DeserializationOptions>
+{
   serializerFor?: SerializerForFn;
   protected serializationOptions?: SerializationOptions;
   protected deserializationOptions?: DeserializationOptions;

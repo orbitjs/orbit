@@ -538,8 +538,7 @@ module('JSONAPISerializer', function (hooks) {
               'solar-system': {
                 data: { type: 'solar-systems', id: '6' },
                 links: {
-                  self:
-                    'https://example.com/api/planets/12345/relationships/solarsystem',
+                  self: 'https://example.com/api/planets/12345/relationships/solarsystem',
                   related: 'https://example.com/api/planets/12345/solarsystem'
                 },
                 meta: {
@@ -569,8 +568,7 @@ module('JSONAPISerializer', function (hooks) {
               solarSystem: {
                 data: { type: 'solarSystem', id: '6' },
                 links: {
-                  self:
-                    'https://example.com/api/planets/12345/relationships/solarsystem',
+                  self: 'https://example.com/api/planets/12345/relationships/solarsystem',
                   related: 'https://example.com/api/planets/12345/solarsystem'
                 },
                 meta: {
@@ -599,8 +597,7 @@ module('JSONAPISerializer', function (hooks) {
               moons: {
                 data: [{ type: 'moons', id: '5' }],
                 links: {
-                  self:
-                    'https://example.com/api/planets/12345/relationships/moons',
+                  self: 'https://example.com/api/planets/12345/relationships/moons',
                   related: 'https://example.com/api/planets/12345/moons'
                 },
                 meta: {
@@ -630,8 +627,7 @@ module('JSONAPISerializer', function (hooks) {
               moons: {
                 data: [{ type: 'moon', id: '5' }],
                 links: {
-                  self:
-                    'https://example.com/api/planets/12345/relationships/moons',
+                  self: 'https://example.com/api/planets/12345/relationships/moons',
                   related: 'https://example.com/api/planets/12345/moons'
                 },
                 meta: {
@@ -663,8 +659,7 @@ module('JSONAPISerializer', function (hooks) {
               moons: { data: [{ type: 'moons', id: '5' }] },
               'solar-system': {
                 links: {
-                  self:
-                    'https://example.com/api/planets/12345/relationships/solarsystem',
+                  self: 'https://example.com/api/planets/12345/relationships/solarsystem',
                   related: 'https://example.com/api/planets/12345/solarsystem'
                 },
                 meta: {
@@ -693,8 +688,7 @@ module('JSONAPISerializer', function (hooks) {
               },
               solarSystem: {
                 links: {
-                  self:
-                    'https://example.com/api/planets/12345/relationships/solarsystem',
+                  self: 'https://example.com/api/planets/12345/relationships/solarsystem',
                   related: 'https://example.com/api/planets/12345/solarsystem'
                 },
                 meta: {
@@ -722,8 +716,7 @@ module('JSONAPISerializer', function (hooks) {
             relationships: {
               moons: {
                 links: {
-                  self:
-                    'https://example.com/api/planets/12345/relationships/moons',
+                  self: 'https://example.com/api/planets/12345/relationships/moons',
                   related: 'https://example.com/api/planets/12345/moons'
                 },
                 meta: {
@@ -750,8 +743,7 @@ module('JSONAPISerializer', function (hooks) {
             relationships: {
               moons: {
                 links: {
-                  self:
-                    'https://example.com/api/planets/12345/relationships/moons',
+                  self: 'https://example.com/api/planets/12345/relationships/moons',
                   related: 'https://example.com/api/planets/12345/moons'
                 },
                 meta: {

@@ -32,7 +32,7 @@ module('RecordCache', function (hooks) {
 
   test('it requires a schema', function (assert) {
     assert.expect(1);
-    let schema = (undefined as unknown) as RecordSchema;
+    let schema = undefined as unknown as RecordSchema;
     assert.throws(() => new MyRecordCache({ schema }));
   });
 

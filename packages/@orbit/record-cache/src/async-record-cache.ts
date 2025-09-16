@@ -91,7 +91,8 @@ export abstract class AsyncRecordCache<
   implements
     AsyncRecordAccessor,
     AsyncRecordQueryable<QueryResponseDetails, QB, QO>,
-    AsyncRecordUpdatable<TransformResponseDetails, TB, TO> {
+    AsyncRecordUpdatable<TransformResponseDetails, TB, TO>
+{
   protected _processors: AsyncOperationProcessor[];
   protected _queryOperators: Dict<AsyncQueryOperator>;
   protected _transformOperators: Dict<AsyncTransformOperator>;
@@ -422,10 +423,8 @@ export abstract class AsyncRecordCache<
 
       await this.applyRecordChangesetAsync(changes);
 
-      const {
-        appliedOperations,
-        appliedOperationResults
-      } = response.details as TransformResponseDetails;
+      const { appliedOperations, appliedOperationResults } =
+        response.details as TransformResponseDetails;
 
       for (let i = 0, len = appliedOperations.length; i < len; i++) {
         this.emit('patch', appliedOperations[i], appliedOperationResults[i]);
@@ -552,13 +551,12 @@ export abstract class AsyncRecordCache<
     const inverseTransformOperator = this.getInverseTransformOperator(
       operation.op
     );
-    const inverseOp:
-      | RecordOperation
-      | undefined = await inverseTransformOperator(
-      this,
-      operation,
-      this.getTransformOptions(transform, operation)
-    );
+    const inverseOp: RecordOperation | undefined =
+      await inverseTransformOperator(
+        this,
+        operation,
+        this.getTransformOptions(transform, operation)
+      );
     if (inverseOp) {
       response.details?.inverseOperations?.push(inverseOp);
 
