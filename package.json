@@ -26,8 +26,9 @@
     "testem": "^3.2.0"
   },
   "prettier": "@orbit/prettier-config",
-  "volta": {
-    "node": "^18.20.8",
-    "pnpm": "10.16.1"
+  "packageManager": "pnpm@10.16.1",
+  "engines": {
+    "node": ">= 18",
+    "pnpm": ">= 10"
   }
 }
