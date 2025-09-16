@@ -14,23 +14,20 @@
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
   "scripts": {
-    "postinstall": "lerna bootstrap",
-    "build": "lerna run build",
-    "compile": "lerna run build && lerna run compile",
-    "test": "lerna run build && lerna run --concurrency 1 test",
-    "lint": "lerna run lint"
+    "build": "pnpm -r run build",
+    "compile": "pnpm -r run build && pnpm -r run compile",
+    "test": "pnpm -r run build && pnpm -r --workspace-concurrency=1 run test",
+    "lint": "pnpm -r run lint"
   },
   "devDependencies": {
     "@orbit/prettier-config": "^1.0.0",
-    "lerna": "^3.22.1",
-    "prettier": "^2.2.1"
+    "prettier": "^2.2.1",
+    "snowpack": "^3.0.11",
+    "testem": "^3.2.0"
   },
   "prettier": "@orbit/prettier-config",
   "volta": {
-    "node": "14.17.3",
-    "yarn": "1.22.17"
-  },
-  "workspaces": [
-    "packages/@orbit/*"
-  ]
+    "node": "^18.20.8",
+    "pnpm": "10.16.1"
+  }
 }

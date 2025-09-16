@@ -21,23 +21,26 @@
   "sideEffects": false,
   "types": "dist/modules/index.d.ts",
   "scripts": {
-    "build": "rm -rf ./dist && yarn build:modules && yarn build:commonjs",
+    "build": "rm -rf ./dist && pnpm build:modules && pnpm build:commonjs",
     "build:modules": "tsc --project ./tsconfig.modules.json",
     "build:commonjs": "tsc --project ./tsconfig.commonjs.json",
     "compile": "tsc",
     "clean": "git clean -x -f",
     "lint": "eslint . --ext .ts",
-    "prepare": "yarn build",
-    "prepublishOnly": "yarn clean",
+    "prepare": "pnpm build",
+    "prepublishOnly": "pnpm clean",
     "start": "node ../build dev && snowpack dev",
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/core": "^0.17.0",
-    "@orbit/utils": "^0.17.0"
+    "@orbit/core": "workspace:*",
+    "@orbit/utils": "workspace:*"
   },
   "devDependencies": {
-    "@orbit/build": "^0.17.0"
+    "@types/qunit": "^2.11.3",
+    "@orbit/build": "workspace:*",
+    "qunit": "^2.14.0",
+    "typescript": "^4.5.4"
   },
   "prettier": "@orbit/prettier-config"
 }

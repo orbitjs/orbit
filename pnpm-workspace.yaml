@@ -1,0 +1,10 @@
+packages:
+  - packages/@orbit/*
+  # - website
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - bufferutil
+  - core-js
+  - core-js-pure
+  - esbuild
+  - utf-8-validate
