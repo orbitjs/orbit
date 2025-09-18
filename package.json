@@ -2,9 +2,6 @@
   "name": "@orbit/orbit",
   "private": true,
   "description": "Core library for Orbit - a flexible data access and synchronization layer.",
-  "contributors": [
-    "Dan Gebhardt <dan@cerebris.com>"
-  ],
   "keywords": [
     "orbit",
     "orbit.js",
@@ -13,12 +10,16 @@
   ],
   "repository": "https://github.com/orbitjs/orbit",
   "license": "MIT",
+  "contributors": [
+    "Dan Gebhardt <dan@cerebris.com>"
+  ],
   "scripts": {
     "build": "pnpm -r run build",
     "compile": "pnpm -r run build && pnpm -r run compile",
-    "test": "pnpm -r run build && pnpm -r --workspace-concurrency=1 run test",
-    "lint": "pnpm -r run lint"
+    "lint": "pnpm -r run lint",
+    "test": "pnpm -r run build && pnpm -r --workspace-concurrency=1 run test"
   },
+  "prettier": "@orbit/prettier-config",
   "devDependencies": {
     "@orbit/prettier-config": "^1.0.0",
     "@typescript-eslint/eslint-plugin": "^4.15.1",
@@ -27,10 +28,10 @@
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-prettier": "^3.3.1",
     "prettier": "^2.2.1",
+    "release-plan": "^0.17.0",
     "snowpack": "^3.0.11",
     "testem": "^3.2.0"
   },
-  "prettier": "@orbit/prettier-config",
   "packageManager": "pnpm@10.16.1",
   "engines": {
     "node": ">= 18",
