@@ -1,0 +1,7 @@
+# Unlabeled Changes
+
+* `@orbit/coordinator`, `@orbit/core`, `@orbit/data`, `@orbit/identity-map`, `@orbit/immutable`, `@orbit/indexeddb-bucket`, `@orbit/indexeddb`, `@orbit/jsonapi`, `@orbit/local-storage-bucket`, `@orbit/local-storage`, `@orbit/memory`, `@orbit/record-cache`, `@orbit/records`, `@orbit/serializers`, `@orbit/utils`, `@orbit/validators`
+  * [#972](https://github.com/orbitjs/orbit/pull/972) Add "sideEffects": false ([@DanielGiljam](https://github.com/DanielGiljam))
+
+
+*Cannot plan release until the above changes are labeled*.
