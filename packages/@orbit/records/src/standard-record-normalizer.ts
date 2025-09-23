@@ -28,7 +28,8 @@ export class StandardRecordNormalizer
       string,
       RecordIdentity | RecordKeyValue,
       UninitializedRecord
-    > {
+    >
+{
   schema: RecordSchema;
   keyMap?: RecordKeyMap;
   cloneInputs?: boolean;

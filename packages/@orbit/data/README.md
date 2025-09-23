@@ -40,7 +40,7 @@ npm install @orbit/data
 To install dependencies:
 
 ```
-yarn install
+pnpm i
 ```
 
 ### Building
@@ -48,7 +48,7 @@ yarn install
 Distributions can be built to the `/dist` directory by running:
 
 ```
-yarn build
+pnpm build
 ```
 
 ### Testing
@@ -58,7 +58,7 @@ yarn build
 Test in CI mode by running:
 
 ```
-yarn test
+pnpm test
 ```
 
 #### Browser Testing
@@ -67,9 +67,9 @@ Test within a browser
 (at [http://localhost:8080/](http://localhost:8080/)) by running:
 
 ```
-yarn start
+pnpm start
 ```
 
 ## License
 
-Copyright 2014-2021 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2025 Cerebris Corporation. MIT License (see LICENSE for details).

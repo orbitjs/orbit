@@ -161,9 +161,8 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
         JSONAPISerializers.ResourceDocument
       ) as JSONAPIDocumentSerializer;
       const recordDoc = serializer.deserialize(document) as RecordDocument;
-      const operations = requestProcessor.operationsFromDeserializedDocument(
-        recordDoc
-      );
+      const operations =
+        requestProcessor.operationsFromDeserializedDocument(recordDoc);
       const transforms = [buildTransform<RecordOperation>(operations)];
 
       return { transforms, data: recordDoc.data, details };
@@ -193,9 +192,8 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
         JSONAPISerializers.ResourceDocument
       ) as JSONAPIDocumentSerializer;
       const recordDoc = serializer.deserialize(document) as RecordDocument;
-      const operations = requestProcessor.operationsFromDeserializedDocument(
-        recordDoc
-      );
+      const operations =
+        requestProcessor.operationsFromDeserializedDocument(recordDoc);
       const transforms = [buildTransform(operations)];
 
       return { transforms, data: recordDoc.data, details };
@@ -228,9 +226,8 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
       ) as JSONAPIDocumentSerializer;
       const recordDoc = serializer.deserialize(document) as RecordDocument;
       const relatedRecord = recordDoc.data;
-      const operations = requestProcessor.operationsFromDeserializedDocument(
-        recordDoc
-      );
+      const operations =
+        requestProcessor.operationsFromDeserializedDocument(recordDoc);
       operations.push({
         op: 'replaceRelatedRecord',
         record,
@@ -272,9 +269,8 @@ export const QueryRequestProcessors: Dict<QueryRequestProcessor> = {
       ) as JSONAPIDocumentSerializer;
       const recordDoc = serializer.deserialize(document) as RecordDocument;
       const relatedRecords = recordDoc.data as RecordIdentity[];
-      const operations = requestProcessor.operationsFromDeserializedDocument(
-        recordDoc
-      );
+      const operations =
+        requestProcessor.operationsFromDeserializedDocument(recordDoc);
 
       const partialSet =
         request.options?.partialSet ??

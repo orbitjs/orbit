@@ -182,11 +182,8 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
   ): Promise<TransformRequestProcessorResponse> {
-    const {
-      relationship,
-      record,
-      relatedRecords
-    } = request as AddToRelatedRecordsRequest;
+    const { relationship, record, relatedRecords } =
+      request as AddToRelatedRecordsRequest;
     const { type, id } = record;
     const resourceIdentitySerializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceIdentity
@@ -215,11 +212,8 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
   ): Promise<TransformRequestProcessorResponse> {
-    const {
-      relationship,
-      record,
-      relatedRecords
-    } = request as RemoveFromRelatedRecordsRequest;
+    const { relationship, record, relatedRecords } =
+      request as RemoveFromRelatedRecordsRequest;
     const { type, id } = record;
     const resourceIdentitySerializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceIdentity
@@ -248,11 +242,8 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
   ): Promise<TransformRequestProcessorResponse> {
-    const {
-      relationship,
-      relatedRecord,
-      record
-    } = request as ReplaceRelatedRecordRequest;
+    const { relationship, relatedRecord, record } =
+      request as ReplaceRelatedRecordRequest;
     const { type, id } = record;
     const resourceIdentitySerializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceIdentity
@@ -283,11 +274,8 @@ export const TransformRequestProcessors: Dict<TransformRequestProcessor> = {
     requestProcessor: JSONAPIRequestProcessor,
     request: RecordTransformRequest
   ): Promise<TransformRequestProcessorResponse> {
-    const {
-      relationship,
-      relatedRecords,
-      record
-    } = request as ReplaceRelatedRecordsRequest;
+    const { relationship, relatedRecords, record } =
+      request as ReplaceRelatedRecordsRequest;
     const { type, id } = record;
     const resourceIdentitySerializer = requestProcessor.serializerFor(
       JSONAPISerializers.ResourceIdentity
@@ -445,11 +433,8 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
   },
 
   addToRelatedRecords(operation: RecordOperation): RecordTransformRequest {
-    const {
-      record,
-      relationship,
-      relatedRecord
-    } = operation as AddToRelatedRecordsOperation;
+    const { record, relationship, relatedRecord } =
+      operation as AddToRelatedRecordsOperation;
     return {
       op: 'addToRelatedRecords',
       record: cloneRecordIdentity(record),
@@ -459,11 +444,8 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
   },
 
   removeFromRelatedRecords(operation: RecordOperation): RecordTransformRequest {
-    const {
-      record,
-      relationship,
-      relatedRecord
-    } = operation as RemoveFromRelatedRecordsOperation;
+    const { record, relationship, relatedRecord } =
+      operation as RemoveFromRelatedRecordsOperation;
     return {
       op: 'removeFromRelatedRecords',
       record: cloneRecordIdentity(record),
@@ -474,10 +456,8 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
 
   replaceRelatedRecord(operation: RecordOperation): RecordTransformRequest {
     const record = cloneRecordIdentity(operation.record);
-    const {
-      relationship,
-      relatedRecord
-    } = operation as ReplaceRelatedRecordOperation;
+    const { relationship, relatedRecord } =
+      operation as ReplaceRelatedRecordOperation;
 
     deepSet(record, ['relationships', relationship, 'data'], relatedRecord);
 
@@ -489,10 +469,8 @@ const OperationToRequestMap: Dict<OperationToRequestConverter> = {
 
   replaceRelatedRecords(operation: RecordOperation): RecordTransformRequest {
     const record = cloneRecordIdentity(operation.record);
-    const {
-      relationship,
-      relatedRecords
-    } = operation as ReplaceRelatedRecordsOperation;
+    const { relationship, relatedRecords } =
+      operation as ReplaceRelatedRecordsOperation;
 
     deepSet(record, ['relationships', relationship, 'data'], relatedRecords);
 

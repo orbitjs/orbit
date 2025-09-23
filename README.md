@@ -47,7 +47,7 @@ Orbit's main packages are maintained in this monorepo and managed by
 Install dependencies:
 
 ```
-yarn install
+pnpm install
 ```
 
 ### Building
@@ -55,7 +55,7 @@ yarn install
 Build distributions for all packages:
 
 ```
-yarn build
+pnpm build
 ```
 
 ### Testing
@@ -63,16 +63,16 @@ yarn build
 Test all packages:
 
 ```
-yarn test
+pnpm test
 ```
 
 Or `cd` into each package's dir and test it individually in the browser:
 
 ```
 cd packages/@orbit/PACKAGE-NAME
-yarn testem
+pnpm testem
 ```
 
 ## License
 
-Copyright 2014-2021 Cerebris Corporation. MIT License (see LICENSE for details).
+Copyright 2014-2025 Cerebris Corporation. MIT License (see LICENSE for details).

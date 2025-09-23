@@ -407,9 +407,9 @@ module('validateRecordQueryExpression', function (hooks) {
   });
 
   test('will validate unknown query expressions', function (assert) {
-    const unknownQueryExpression = ({
+    const unknownQueryExpression = {
       op: 'unknown'
-    } as unknown) as RecordQueryExpression;
+    } as unknown as RecordQueryExpression;
 
     assert.deepEqual(
       validateRecordQueryExpression(unknownQueryExpression, {

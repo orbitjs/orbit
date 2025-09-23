@@ -1114,18 +1114,22 @@ module('IndexedDBCache', function () {
       ]);
 
       assert.deepEqual(
-        ((await cache.getRecordAsync({
-          type: 'moon',
-          id: 'm1'
-        })) as InitializedRecord)?.relationships?.planet.data,
+        (
+          (await cache.getRecordAsync({
+            type: 'moon',
+            id: 'm1'
+          })) as InitializedRecord
+        )?.relationships?.planet.data,
         { type: 'planet', id: 'p1' },
         'Jupiter has been assigned to Io'
       );
       assert.deepEqual(
-        ((await cache.getRecordAsync({
-          type: 'moon',
-          id: 'm2'
-        })) as InitializedRecord)?.relationships?.planet.data,
+        (
+          (await cache.getRecordAsync({
+            type: 'moon',
+            id: 'm2'
+          })) as InitializedRecord
+        )?.relationships?.planet.data,
         { type: 'planet', id: 'p1' },
         'Jupiter has been assigned to Europa'
       );
@@ -1139,18 +1143,22 @@ module('IndexedDBCache', function () {
       );
 
       assert.equal(
-        ((await cache.getRecordAsync({
-          type: 'moon',
-          id: 'm1'
-        })) as InitializedRecord)?.relationships?.planet.data,
+        (
+          (await cache.getRecordAsync({
+            type: 'moon',
+            id: 'm1'
+          })) as InitializedRecord
+        )?.relationships?.planet.data,
         undefined,
         'Jupiter has been cleared from Io'
       );
       assert.equal(
-        ((await cache.getRecordAsync({
-          type: 'moon',
-          id: 'm2'
-        })) as InitializedRecord)?.relationships?.planet.data,
+        (
+          (await cache.getRecordAsync({
+            type: 'moon',
+            id: 'm2'
+          })) as InitializedRecord
+        )?.relationships?.planet.data,
         undefined,
         'Jupiter has been cleared from Europa'
       );
@@ -1190,10 +1198,12 @@ module('IndexedDBCache', function () {
       ]);
 
       assert.deepEqual(
-        ((await cache.getRecordAsync({
-          type: 'planet',
-          id: 'p1'
-        })) as InitializedRecord)?.relationships?.moons.data,
+        (
+          (await cache.getRecordAsync({
+            type: 'planet',
+            id: 'p1'
+          })) as InitializedRecord
+        )?.relationships?.moons.data,
         [
           { type: 'moon', id: 'm1' },
           { type: 'moon', id: 'm2' }

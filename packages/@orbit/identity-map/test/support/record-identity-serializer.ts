@@ -6,7 +6,8 @@ import {
 import { IdentitySerializer } from '../../src/index';
 
 export class RecordIdentitySerializer
-  implements IdentitySerializer<RecordIdentity> {
+  implements IdentitySerializer<RecordIdentity>
+{
   serialize(identity: RecordIdentity): string {
     return serializeRecordIdentity(identity);
   }

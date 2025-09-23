@@ -91,7 +91,8 @@ export class IndexedDBSource<
   implements
     RecordSyncable,
     RecordQueryable<QRD, QB, QO>,
-    RecordUpdatable<TRD, TB, TO> {
+    RecordUpdatable<TRD, TB, TO>
+{
   protected _cache: IndexedDBCache<QO, TO, QB, TB, QRD, TRD>;
 
   constructor(settings: IndexedDBSourceSettings<QO, TO, QB, TB, QRD, TRD>) {
@@ -153,7 +154,8 @@ export class IndexedDBSource<
   }
 
   set defaultTransformOptions(options: DefaultRequestOptions<TO> | undefined) {
-    this._defaultTransformOptions = this.cache.defaultTransformOptions = options;
+    this._defaultTransformOptions = this.cache.defaultTransformOptions =
+      options;
   }
 
   async upgrade(): Promise<void> {
@@ -198,11 +200,8 @@ export class IndexedDBSource<
     hints?: ResponseHints<RecordTransformResult, TRD>
   ): Promise<FullResponse<RecordTransformResult, TRD, RecordOperation>> {
     let results: RecordTransformResult;
-    const response: FullResponse<
-      RecordTransformResult,
-      TRD,
-      RecordOperation
-    > = {};
+    const response: FullResponse<RecordTransformResult, TRD, RecordOperation> =
+      {};
 
     if (!this.transformLog.contains(transform.id)) {
       results = await this._applyTransform(transform);

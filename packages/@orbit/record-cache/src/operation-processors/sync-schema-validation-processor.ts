@@ -22,7 +22,7 @@ export class SyncSchemaValidationProcessor extends SyncOperationProcessor {
   constructor(accessor: SyncRecordAccessor) {
     super(accessor);
 
-    const cache = (this.accessor as unknown) as RecordCache;
+    const cache = this.accessor as unknown as RecordCache;
     const { schema, validatorFor } = cache;
     if (validatorFor === undefined || schema === undefined) {
       throw new Assertion(

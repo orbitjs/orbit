@@ -15,9 +15,10 @@ function serializeRecordRelationshipIdentity(
   return `${serializeRecordIdentity(rri.record)}::${rri.relationship}`;
 }
 
-function deserializeRecordRelationshipIdentity(
-  rri: string
-): { record: RecordIdentity; relationship: string } {
+function deserializeRecordRelationshipIdentity(rri: string): {
+  record: RecordIdentity;
+  relationship: string;
+} {
   const [record, relationship] = rri.split('::');
   return { record: deserializeRecordIdentity(record), relationship };
 }
@@ -29,7 +30,8 @@ export interface SimpleRecordTransformBufferState {
 
 export class SimpleRecordTransformBuffer
   extends SyncRecordCache
-  implements RecordTransformBuffer {
+  implements RecordTransformBuffer
+{
   protected _state!: SimpleRecordTransformBufferState;
   protected _delta?: SimpleRecordTransformBufferState;
 
@@ -78,9 +80,8 @@ export class SimpleRecordTransformBuffer
       let rels = inverseRelationships[rid];
       for (let rel of Object.keys(rels)) {
         let rv = rels[rel];
-        let { record, relationship } = deserializeRecordRelationshipIdentity(
-          rel
-        );
+        let { record, relationship } =
+          deserializeRecordRelationshipIdentity(rel);
         let rri = { relatedRecord, record, relationship };
         if (rv === null) {
           changeset.removeInverseRelationships =
@@ -223,9 +224,8 @@ export class SimpleRecordTransformBuffer
   protected _getInverseRelationshipsSync(
     recordIdentity: RecordIdentity
   ): RecordRelationshipIdentity[] {
-    let relationships = this._state.inverseRelationships[
-      serializeRecordIdentity(recordIdentity)
-    ];
+    let relationships =
+      this._state.inverseRelationships[serializeRecordIdentity(recordIdentity)];
     if (relationships) {
       return objectValues(relationships).filter((r) => r !== null);
     } else {

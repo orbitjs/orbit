@@ -212,10 +212,12 @@ module('LocalStorageCache - update', function (hooks) {
         cache.update((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.moons.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'Io has been assigned to Jupiter'
         );
@@ -245,10 +247,12 @@ module('LocalStorageCache - update', function (hooks) {
         cache.update((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.moons.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'Io has been assigned to Jupiter'
         );
@@ -278,10 +282,12 @@ module('LocalStorageCache - update', function (hooks) {
         cache.update((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.moons.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'Io has been assigned to Jupiter'
         );
@@ -311,10 +317,12 @@ module('LocalStorageCache - update', function (hooks) {
         cache.update((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.moons.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'Io has been assigned to Jupiter'
         );
@@ -345,10 +353,12 @@ module('LocalStorageCache - update', function (hooks) {
         cache.update((t) => [t.updateRecord(io), t.updateRecord(jupiter)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.moons.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.moons.data,
           [],
           'Jupiter has no moons'
         );
@@ -379,10 +389,12 @@ module('LocalStorageCache - update', function (hooks) {
         cache.update((t) => [t.updateRecord(jupiter), t.updateRecord(io)]);
 
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.moons.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.moons.data,
           [],
           'Io has been cleared from Jupiter'
         );
@@ -437,10 +449,12 @@ module('LocalStorageCache - update', function (hooks) {
           'Jupiter and Io has been assigned to Sun'
         );
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.star.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.star.data,
           { type: 'star', id: 's1' },
           'Sun has been assigned to Jupiter'
         );
@@ -489,10 +503,12 @@ module('LocalStorageCache - update', function (hooks) {
           'Jupiter and Io has been assigned to Sun'
         );
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.star.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.star.data,
           { type: 'star', id: 's1' },
           'Sun has been assigned to Jupiter'
         );
@@ -603,10 +619,12 @@ module('LocalStorageCache - update', function (hooks) {
         ]);
 
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.moons.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.moons.data,
           [
             { type: 'moon', id: 'm1' },
             { type: 'moon', id: 'm2' }
@@ -665,10 +683,12 @@ module('LocalStorageCache - update', function (hooks) {
         );
 
         assert.deepEqual(
-          (cache.getRecordSync({
-            type: 'planet',
-            id: 'p1'
-          }) as InitializedRecord)?.relationships?.moons.data,
+          (
+            cache.getRecordSync({
+              type: 'planet',
+              id: 'p1'
+            }) as InitializedRecord
+          )?.relationships?.moons.data,
           [{ type: 'moon', id: 'm1' }],
           'relationship was added'
         );

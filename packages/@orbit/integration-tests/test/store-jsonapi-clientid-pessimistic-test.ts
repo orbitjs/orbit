@@ -167,7 +167,11 @@ module(
           .withArgs('/planets/2')
           .returns(jsonapiResponse(200, { data: planet2 }));
 
-        let { data: records, details, sources } = (await memory.query(
+        let {
+          data: records,
+          details,
+          sources
+        } = (await memory.query(
           (q) => [
             q.findRecord({ type: 'planet', id: planet1.id }),
             q.findRecord({ type: 'planet', id: planet2.id })
@@ -316,7 +320,11 @@ module(
           .withArgs('/planets/2')
           .returns(jsonapiResponse(200, { data: planet2 }));
 
-        let { data: records, details, sources } = (await memory.query(
+        let {
+          data: records,
+          details,
+          sources
+        } = (await memory.query(
           (q) => [
             q.findRecord({ type: 'planet', id: planet1.id }),
             q.findRecord({ type: 'planet', id: planet2.id })

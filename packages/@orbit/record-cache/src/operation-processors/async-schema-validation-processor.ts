@@ -22,7 +22,7 @@ export class AsyncSchemaValidationProcessor extends AsyncOperationProcessor {
   constructor(accessor: AsyncRecordAccessor) {
     super(accessor);
 
-    const cache = (this.accessor as unknown) as RecordCache;
+    const cache = this.accessor as unknown as RecordCache;
     const { schema, validatorFor } = cache;
     if (validatorFor === undefined || schema === undefined) {
       throw new Assertion(

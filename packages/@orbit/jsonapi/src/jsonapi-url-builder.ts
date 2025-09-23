@@ -152,7 +152,8 @@ export class JSONAPIURLBuilder {
             [field]: attributeFilter.value ?? null
           });
         } else if (filterSpecifier.kind === 'relatedRecord') {
-          const relatedRecordFilter = filterSpecifier as RelatedRecordFilterSpecifier;
+          const relatedRecordFilter =
+            filterSpecifier as RelatedRecordFilterSpecifier;
           if (relatedRecordFilter.op !== 'equal') {
             throw new QueryExpressionParseError(
               `Filter operation '${relatedRecordFilter.op}' not recognized by JSONAPIURLBuilder#buildFilterParam for relatedRecord filtering. Override this method to provide a custom handler.`
@@ -173,7 +174,8 @@ export class JSONAPIURLBuilder {
             });
           }
         } else if (filterSpecifier.kind === 'relatedRecords') {
-          const relatedRecordsFilter = filterSpecifier as RelatedRecordsFilterSpecifier;
+          const relatedRecordsFilter =
+            filterSpecifier as RelatedRecordsFilterSpecifier;
           if (relatedRecordsFilter.op !== 'equal') {
             throw new QueryExpressionParseError(
               `Filter operation '${relatedRecordsFilter.op}' not recognized by JSONAPIURLBuilder#buildFilterParam for relatedRecords filtering. Override this method to provide a custom handler.`

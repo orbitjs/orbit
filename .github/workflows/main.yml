@@ -10,26 +10,30 @@ on:
 
 jobs:
   lint:
-    name: "Lint and compile"
+    name: 'Lint and compile'
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: volta-cli/action@v1
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 14.x
-      - run: yarn install --frozen-lockfile
-      - run: yarn lint
-      - run: yarn compile
+          node-version-file: package.json
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm compile
 
   test:
-    name: "Test"
+    name: 'Test'
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: volta-cli/action@v1
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 14.x
-      - run: yarn install --frozen-lockfile
-      - run: yarn test
+          node-version-file: package.json
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test

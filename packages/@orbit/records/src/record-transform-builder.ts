@@ -79,15 +79,15 @@ export class RecordTransformBuilder<
         );
         this.$normalizer = {
           normalizeRecordType(type: RT): string {
-            return (type as unknown) as string;
+            return type as unknown as string;
           },
           normalizeRecord(record: R) {
             return recordInitializer.initializeRecord(
-              (record as unknown) as UninitializedRecord
+              record as unknown as UninitializedRecord
             );
           },
           normalizeRecordIdentity(recordIdentity: RI) {
-            return (recordIdentity as unknown) as RecordIdentity;
+            return recordIdentity as unknown as RecordIdentity;
           }
         };
       }
@@ -215,7 +215,7 @@ export class RecordTransformBuilder<
     if (this.$normalizer) {
       return this.$normalizer.normalizeRecord(r);
     } else {
-      return (r as unknown) as InitializedRecord;
+      return r as unknown as InitializedRecord;
     }
   }
 
@@ -223,7 +223,7 @@ export class RecordTransformBuilder<
     if (this.$normalizer !== undefined) {
       return this.$normalizer.normalizeRecordIdentity(ri);
     } else {
-      return (ri as unknown) as RecordIdentity;
+      return ri as unknown as RecordIdentity;
     }
   }
 }

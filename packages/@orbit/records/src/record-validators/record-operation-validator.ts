@@ -69,15 +69,15 @@ export const validateRecordOperation: RecordOperationValidator = (
 
   switch (operation.op) {
     case 'addRecord':
-      issues = (validatorFor(
-        StandardRecordValidators.Record
-      ) as RecordValidator)(operation.record, { schema, validatorFor });
+      issues = (
+        validatorFor(StandardRecordValidators.Record) as RecordValidator
+      )(operation.record, { schema, validatorFor });
       break;
 
     case 'updateRecord':
-      issues = (validatorFor(
-        StandardRecordValidators.Record
-      ) as RecordValidator)(operation.record, {
+      issues = (
+        validatorFor(StandardRecordValidators.Record) as RecordValidator
+      )(operation.record, {
         schema,
         validatorFor,
         partialRecord: true
@@ -85,39 +85,49 @@ export const validateRecordOperation: RecordOperationValidator = (
       break;
 
     case 'removeRecord':
-      issues = (validatorFor(
-        StandardRecordValidators.RecordIdentity
-      ) as RecordIdentityValidator)(operation.record, { schema, validatorFor });
+      issues = (
+        validatorFor(
+          StandardRecordValidators.RecordIdentity
+        ) as RecordIdentityValidator
+      )(operation.record, { schema, validatorFor });
       break;
 
     case 'replaceKey':
-      issues = (validatorFor(
-        StandardRecordValidators.RecordKey
-      ) as RecordKeyValidator)(operation, { schema, validatorFor });
+      issues = (
+        validatorFor(StandardRecordValidators.RecordKey) as RecordKeyValidator
+      )(operation, { schema, validatorFor });
       break;
 
     case 'replaceAttribute':
-      issues = (validatorFor(
-        StandardRecordValidators.RecordAttribute
-      ) as RecordAttributeValidator)(operation, { schema, validatorFor });
+      issues = (
+        validatorFor(
+          StandardRecordValidators.RecordAttribute
+        ) as RecordAttributeValidator
+      )(operation, { schema, validatorFor });
       break;
 
     case 'addToRelatedRecords':
-      issues = (validatorFor(
-        StandardRecordValidators.RelatedRecord
-      ) as RelatedRecordValidator)(operation, { schema, validatorFor });
+      issues = (
+        validatorFor(
+          StandardRecordValidators.RelatedRecord
+        ) as RelatedRecordValidator
+      )(operation, { schema, validatorFor });
       break;
 
     case 'removeFromRelatedRecords':
-      issues = (validatorFor(
-        StandardRecordValidators.RelatedRecord
-      ) as RelatedRecordValidator)(operation, { schema, validatorFor });
+      issues = (
+        validatorFor(
+          StandardRecordValidators.RelatedRecord
+        ) as RelatedRecordValidator
+      )(operation, { schema, validatorFor });
       break;
 
     case 'replaceRelatedRecords':
-      issues = (validatorFor(
-        StandardRecordValidators.RecordRelationship
-      ) as RecordRelationshipValidator)(
+      issues = (
+        validatorFor(
+          StandardRecordValidators.RecordRelationship
+        ) as RecordRelationshipValidator
+      )(
         {
           record: operation.record,
           relationship: operation.relationship,
@@ -128,9 +138,11 @@ export const validateRecordOperation: RecordOperationValidator = (
       break;
 
     case 'replaceRelatedRecord':
-      issues = (validatorFor(
-        StandardRecordValidators.RecordRelationship
-      ) as RecordRelationshipValidator)(
+      issues = (
+        validatorFor(
+          StandardRecordValidators.RecordRelationship
+        ) as RecordRelationshipValidator
+      )(
         {
           record: operation.record,
           relationship: operation.relationship,

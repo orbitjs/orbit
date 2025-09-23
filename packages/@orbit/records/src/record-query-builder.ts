@@ -111,7 +111,7 @@ export class RecordQueryBuilder<RT = string, RI = RecordIdentity> {
     if (this.$normalizer !== undefined) {
       return this.$normalizer.normalizeRecordType(rt);
     } else {
-      return (rt as unknown) as string;
+      return rt as unknown as string;
     }
   }
 
@@ -119,7 +119,7 @@ export class RecordQueryBuilder<RT = string, RI = RecordIdentity> {
     if (this.$normalizer !== undefined) {
       return this.$normalizer.normalizeRecordIdentity(ri);
     } else {
-      return (ri as unknown) as RecordIdentity;
+      return ri as unknown as RecordIdentity;
     }
   }
 }

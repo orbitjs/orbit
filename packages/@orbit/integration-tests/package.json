@@ -16,25 +16,28 @@
     "test": "node ../build ci && snowpack build && testem ci"
   },
   "dependencies": {
-    "@orbit/coordinator": "^0.17.0",
-    "@orbit/core": "^0.17.0",
-    "@orbit/data": "^0.17.0",
-    "@orbit/immutable": "^0.17.0",
-    "@orbit/indexeddb": "^0.17.2",
-    "@orbit/indexeddb-bucket": "^0.17.0",
-    "@orbit/jsonapi": "^0.17.1",
-    "@orbit/local-storage": "^0.17.2",
-    "@orbit/local-storage-bucket": "^0.17.0",
-    "@orbit/memory": "^0.17.2",
-    "@orbit/record-cache": "^0.17.2",
-    "@orbit/records": "^0.17.0",
-    "@orbit/serializers": "^0.17.0",
-    "@orbit/utils": "^0.17.0"
+    "@orbit/coordinator": "workspace:*",
+    "@orbit/core": "workspace:*",
+    "@orbit/data": "workspace:*",
+    "@orbit/immutable": "workspace:*",
+    "@orbit/indexeddb": "workspace:*",
+    "@orbit/indexeddb-bucket": "workspace:*",
+    "@orbit/jsonapi": "workspace:*",
+    "@orbit/local-storage": "workspace:*",
+    "@orbit/local-storage-bucket": "workspace:*",
+    "@orbit/memory": "workspace:*",
+    "@orbit/record-cache": "workspace:*",
+    "@orbit/records": "workspace:*",
+    "@orbit/serializers": "workspace:*",
+    "@orbit/utils": "workspace:*"
   },
   "devDependencies": {
-    "@orbit/build": "^0.17.0",
+    "@orbit/build": "workspace:*",
+    "@types/qunit": "^2.11.3",
     "@types/sinon": "^9.0.0",
+    "qunit": "^2.14.0",
     "sinon": "^9.0.2",
+    "typescript": "^4.5.4",
     "whatwg-fetch": "^3.0.0"
   },
   "prettier": "@orbit/prettier-config"
