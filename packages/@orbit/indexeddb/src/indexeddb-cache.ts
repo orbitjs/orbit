@@ -601,10 +601,11 @@ export class IndexedDBCache<
    */
   protected _getTransformBuffer(): RecordTransformBuffer {
     if (this._transformBuffer === undefined) {
-      const { schema, keyMap } = this;
+      const { schema, keyMap, validatorFor } = this;
       this._transformBuffer = new SimpleRecordTransformBuffer({
         schema,
-        keyMap
+        keyMap,
+        validatorFor
       });
     }
     return this._transformBuffer;
